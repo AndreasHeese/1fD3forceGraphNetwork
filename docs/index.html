@@ -231,7 +231,7 @@
 
 		function ticked() {
 			link
-				.attr("d", (function(d) { return 'M' + d.source.x + ',' + d.source.y + ' L' + d.target.x + ',' + d.target.y; }));
+				.attr("d", function(d) { return "M " + d.source.x + " " + d.source.y + " Q " + ((d.source.x + d.target.x) / 2 - (d.source.x + d.target.x) / 100) + " " + ((d.source.y + d.target.y) / 2 - (d.source.y + d.target.y) / 100) + "," + d.target.x + " " + d.target.y; });
 
 			node
 				.attr("cx", function(d) { return d.x; })
