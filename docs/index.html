@@ -11,9 +11,12 @@
 	that can be sent without hassle and that will work locally without dependencies on other files.
 	
 	The nodes (circles) can be dragged to get a different view of the network connections.
+	If the shift key is pressed while releasing the mouse button the position of the node will be fixed at the drop position.
+	Another click on the node without shift key pressed releases the fixation. Reloading the page releases all fixations.
 	Any relationships can be represented by adapting the object "graph" with "nodes" and "links".
 
 	Copyright (C) 2024, 2025 Andreas Heese, License GPLv3
+	v1.2 published on https://github.com/AndreasHeese/1fD3forceGraphNetwork
 
 	This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version
 	This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details
@@ -65,6 +68,13 @@
 			display: block;
 			margin: auto;
 		}
+		div#showPosition {
+			position: absolute;
+			z-index: 2;
+			top: 10px;
+			left: 15px;
+			margin: 0;
+		}
 		</style>
 		<script id="graph">
 		var graph = { 
@@ -73,17 +83,18 @@
 		{ id: "B", color: "#008000"},
 		{ id: "C", color: "#0000CD"},
 		{ id: "D", color: "#B22222"},
-		{ id: "E (with longer text)", color: "#FFD700"},
+		{ id: "E (with longer text)", color: "#FFD700"}
 		], 
 		"links": [ 
 		{ source: "A", target: "B", color: "#008000"},
 		{ source: "B", target: "C", color: "#808080"},
 		{ source: "C", target: "D", color: "#808080"},
-		{ source: "C", target: "E (with longer text)", color: "#808080"},
+		{ source: "C", target: "E (with longer text)", color: "#808080"}
 		]}; 
 		</script>
 	</head>
 	<body>
+		<div id="showPosition"></div>
 		<svg height="100%" width="100%" xmlns="http://www.w3.org/2000/svg" id="d3" style="">
 			<style>
 			text {
@@ -249,14 +260,22 @@
 		}
 
 		function dragged(event) {
-			event.subject.fx = event.x;
-			event.subject.fy = event.y;
+			if (event.sourceEvent.shiftKey) { // display node position while dragging with shift key pressed
+				document.getElementById("showPosition").innerHTML = 'x=' + Math.round(event.x) + ' y=' + Math.round(event.y);
+			} else {
+				document.getElementById("showPosition").innerHTML = '';
+			};
+			event.subject.fx = Math.round(event.x);
+			event.subject.fy = Math.round(event.y);
 		}
 
 		function dragended(event) {
-			if (!event.active) simulation.alphaTarget(0);
-			event.subject.fx = null;
-			event.subject.fy = null;
+			document.getElementById("showPosition").innerHTML = '';
+			if (!event.sourceEvent.shiftKey) { // fix node position after dragging with shift key pressed, release otherwise
+				if (!event.active) simulation.alphaTarget(0);
+				event.subject.fx = null;
+				event.subject.fy = null;
+			}
 		}
 		</script>
 	</body>
