@@ -739,11 +739,21 @@
 				}
 			}
 			var newScriptContent = '\n'+'var graph = { \n"nodes": [ \n';
-			for(i in graph.nodes)
-				newScriptContent = newScriptContent + '{ id: "' + graph.nodes[i].id + '", color: "' + graph.nodes[i].color + '"},\n';
+			var comma = ',';
+			for(i in graph.nodes) {
+				if (i == graph.nodes.length - 1) {
+					comma = '';
+				}				
+				newScriptContent = newScriptContent + '{ id: "' + graph.nodes[i].id + '", color: "' + graph.nodes[i].color + '"}' + comma + ',\n';
+			}
 			newScriptContent = newScriptContent + '], \n"links": [ \n';
-			for(j in graph.links)
-				newScriptContent = newScriptContent + '{ source: "' + graph.links[j].source.id + '", target: "' + graph.links[j].target.id + '", color: "' + graph.links[j].color + '"},\n';
+			comma = ',';
+			for(j in graph.links) {
+				if (j == graph.links.length - 1) {
+					comma = '';
+				}
+				newScriptContent = newScriptContent + '{ source: "' + graph.links[j].source.id + '", target: "' + graph.links[j].target.id + '", color: "' + graph.links[j].color + '"}' + comma + ',\n';
+			}
 			newScriptContent = newScriptContent + ']}; \n';
 			
 			h.querySelector("script#graph").innerHTML = newScriptContent;
