@@ -15,7 +15,7 @@
 
 	Copyright (C) 2024, 2025 Andreas Heese, License GPLv3
 	This copyright does not extend to the embedded data except that data it was published with.
-	v2.0 published on https://github.com/AndreasHeese/1fD3forceGraphNetwork
+	v2.01 published on https://github.com/AndreasHeese/1fD3forceGraphNetwork
 
 	This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version
 	This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details
@@ -744,7 +744,7 @@
 				if (i == graph.nodes.length - 1) {
 					comma = '';
 				}				
-				newScriptContent = newScriptContent + '{ id: "' + graph.nodes[i].id + '", color: "' + graph.nodes[i].color + '"}' + comma + ',\n';
+				newScriptContent = newScriptContent + '{ id: "' + graph.nodes[i].id + '", color: "' + graph.nodes[i].color + '"}' + comma + '\n';
 			}
 			newScriptContent = newScriptContent + '], \n"links": [ \n';
 			comma = ',';
@@ -752,7 +752,7 @@
 				if (j == graph.links.length - 1) {
 					comma = '';
 				}
-				newScriptContent = newScriptContent + '{ source: "' + graph.links[j].source.id + '", target: "' + graph.links[j].target.id + '", color: "' + graph.links[j].color + '"}' + comma + ',\n';
+				newScriptContent = newScriptContent + '{ source: "' + graph.links[j].source.id + '", target: "' + graph.links[j].target.id + '", color: "' + graph.links[j].color + '"}' + comma + '\n';
 			}
 			newScriptContent = newScriptContent + ']}; \n';
 			
