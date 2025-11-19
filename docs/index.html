@@ -15,7 +15,7 @@
 
 	Copyright (C) 2024, 2025 Andreas Heese, License GPLv3
 	This copyright does not extend to the embedded data except that data it was published with.
-	v2.01 published on https://github.com/AndreasHeese/1fD3forceGraphNetwork
+	v2.1 published on https://github.com/AndreasHeese/1fD3forceGraphNetwork
 
 	This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version
 	This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details
@@ -24,7 +24,13 @@
 	<head>
 		<meta charset="utf-8">
 		<script>
-		const defaultcolor = "#808080",
+		const defaultcolor = "#808080", defaultsize = 8;
+		const defaults = {
+			nodeColor: "#999999",
+			linkColor: "#999999",
+			nodeSize: 8,
+			linkWidth: 1.5
+		}
 		forceProperties = {
 			center: {
 				x: 0.5,
@@ -100,14 +106,14 @@
 			border: 1px solid Black;
 			text-align: center;
 		}
-		form {
+		form, dialog#settings {
 			padding: 10px;
 		}
 		dialog#mainMenu {
 			margin-top: 20px;
 			margin-left: 20px;
 		}
-		dialog#editNodesDlg, dialog#editLinksDlg {
+		dialog#editNodesDlg, dialog#editLinksDlg, dialog#settings {
 			z-index: 3;
 			margin-top: 20px;
 			margin-left: 20px;
@@ -121,7 +127,16 @@
 			text-align: center;
 		}
 		div#textDlgContent {
-			padding: 10px;
+			padding: 22px 10px 0 10px;
+		}
+		div.xClose {
+			position: absolute;
+			top: 0;
+			right: 0;
+			margin: 0;
+			padding: 0 5px;
+			font-size: 110%;
+			cursor: default;
 		}
 		button {
 			display: block;
@@ -129,18 +144,40 @@
 			margin: auto;
 			margin-top: 4pt;
 		}
+		dialog#renameDlg > form {
+			padding: 2px;
+		}
+		dialog#renameDlg > form > input#newname {
+			display: inline;
+			margin: 0;
+		}
+		dialog#renameDlg > form > button {
+			display: inline;
+			width: 4em;
+			margin: 0;
+		}
 		button:first-child:not(:last-of-type) {
 			margin-top: 0;
 		}
 		button.separate {
 			margin-top: 12pt;
 		}
-		input, label {
+		label {
+			margin-left: 4pt;
+			margin-right: 4pt;
+			display: block;
+			font-size: 80%;
+			text-align: left;
+		}
+		input {
 			margin-left: 4pt;
 			margin-right: 4pt;
 			display: block;
 			width: 20em;
 			font-size: 80%;
+		}
+		input[type = range] {
+			width: 10em;
 		}
 		input[readonly] {
 			background-color: #F9F9F9;
@@ -162,6 +199,10 @@
 			line-height: 0;
 			text-align: center;
 			vertical-align: middle;
+		}
+		input.size {
+			width: 3em;
+			text-align: right;
 		}
 		input.ColorInput {
 			width: 5em;
@@ -188,18 +229,18 @@
 		</style>
 		<script id="graph">
 		var graph = { 
-		"nodes": [ 
-		{ id: "A", color: "#808080"},
-		{ id: "B", color: "#008000"},
-		{ id: "C", color: "#0000CD"},
-		{ id: "D", color: "#B22222"},
-		{ id: "E (with longer text)", color: "#FFD700"}
+		nodes: [ 
+		{ id: "A", color: "#999999", size: 14},
+		{ id: "B", color: "#B22222", size: 8},
+		{ id: "C", color: "#006400", size: 8},
+		{ id: "D", color: "#0000CD", size: 8},
+		{ id: "E (with longer text)", color: "#FFD700", size: 8}
 		], 
-		"links": [ 
-		{ source: "A", target: "B", color: "#008000"},
-		{ source: "B", target: "C", color: "#808080"},
-		{ source: "C", target: "D", color: "#808080"},
-		{ source: "C", target: "E (with longer text)", color: "#808080"}
+		links: [ 
+		{ source: "A", target: "B", color: "#999999", width: 1.5},
+		{ source: "B", target: "C", color: "#999999", width: 1.5},
+		{ source: "C", target: "D", color: "#999999", width: 1.5},
+		{ source: "C", target: "E (with longer text)", color: "#FFD700", width: 3}
 		]}; 
 		</script>
 	</head>
@@ -210,12 +251,13 @@
 			<form method="dialog" onSubmit="processMainMenu(event.submitter)">
 				<button value="editNodes" title="Add, edit and delete nodes">Edit nodes</button>
 				<button value="editLinks" title="Add, edit and delete links">Edit links</button>
+				<button value="settings" title="Global settings">Settings</button>
 				<button value="saveStaticSVG" class="separate" title="Save as static image by downloading SVG-file">Save as static SVG</button>
 				<button value="saveDynamicHTML" title="Save as dynamic image by downloading HTML-file">Save as dynamic HTML</button>
 				<button value="saveWholeHTML" title="Save application with current data by downloading HTML-file">Save editable HTML</button>
 				<button value="help" class="separate" title="Information about how to use this application">Help</button>
 				<button value="info" title="Information about this local single page application">Info</button>
-				<button value="cancel" class="separate" title="Close menu">Cancel</button>
+				<button value="cancel" class="separate" title="Close menu">Close menu</button>
 			</form>
 		</dialog>
 		<dialog id="contextMenu" class="edit">
@@ -223,14 +265,13 @@
 				<button value="renameNode" title="Rename this node">Rename node</button>
 				<button value="addNode" title="Add new node with link from here">Add node</button>
 				<button value="deleteNode" title="Delete this node including connected links">Delete node</button>
-				<button value="cancel" title="Close menu">Cancel</button>
+				<button value="cancel" class="separate" title="Close menu">Close menu</button>
 				<input type="text" id="contextMenuNodeId" class="passThrough" value=""></input><!-- Möglichst entfernen -->
 				<input type="text" id="contextMenuNodeIndex" class="passThrough" value=""></input>
 			</form>
 		</dialog>
 		<dialog id="renameDlg" class="edit">
-			<form method="dialog" onSubmit="renameNode(this.elements.namedItem('renameDlgNodeIndex').value, this.elements.namedItem('renameDlgNodeId').value, this.elements.namedItem('newname').value)">
-				<label for="newname">enter name</label>
+			<form method="dialog" onSubmit="renameNode(this.elements.namedItem('renameDlgNodeIndex').value, this.elements.namedItem('renameDlgNodeId').value, this.elements.namedItem('newname').value, event.submitter)">
 				<input type="text" name="newname" id="newname" title="enter new node name"></input>
 				<button value="ok" title="rename">ok</button>
 				<button value="cancel" title="abort renaming">cancel</button>
@@ -238,23 +279,48 @@
 				<input type="text" id="renameDlgNodeIndex" class="passThrough" value=""></input>
 			</form>
 		</dialog>
+		<dialog id="settings" class="edit">
+			<div class="xClose" title="Close dialog" onclick="document.getElementById('settings').close()">✖</div>
+			<table>
+					<thead>
+						<tr>
+							<th colspan="3">Settings</th>
+						</tr>
+					</thead>
+				<tbody>
+					<tr>
+						<td>
+							<label for="bend">Link bending</label>
+						</td>
+						<td>
+							<input type="range" name="bend" id="bend" min="0" max="100" step="1" oninput="bv = this.value; document.getElementById('showBend').innerHTML = this.value; restart();"></input>
+						</td>
+						<td id="showBend" style="width: 3em">
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<label for="fontSize">Text size</label>
+						</td>
+						<td>
+							<input type="range" name="fontSize" id="fontSize" min="20" max="300" step="10" oninput="document.styleSheets[3].cssRules[0].style.fontSize = this.value + '%'; document.getElementById('showFontSize').innerHTML = this.value + '%'; restart();"></input>
+						</td>
+						<td id="showFontSize">
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</dialog>
 		<dialog id="textDlg" class="edit">
+			<div class="xClose" title="Close dialog" onclick="document.getElementById('textDlg').close()">✖</div>
 			<div id="textDlgContent"></div>
 			<form method="dialog" onSubmit="document.getElementById('textDlg').close()">
 				<button value="close" title="Close dialog">OK</button>
 			</form>
 		</dialog>
-		<dialog id="selectNodeDlg" class="edit">
-			<form method="dialog" onSubmit="addNode(event.currentTarget[0].value)">
-				<label for="selectNode">select node to add to</label>
-				<input type="text" name="selectNode" id="selectNode" title="select node to add to" list="selectlist" required></input>
-				<datalist id="selectlist"></datalist >
-				<button value="ok" title="selectNode">ok</button>
-				<button value="cancel" title="Close menu" type="button" onclick="document.getElementById('selectNodeDlg').close()">Cancel</button>
-			</form>
-		</dialog>
 		<dialog id="editNodesDlg" class="edit">
 			<form method="dialog">
+				<div class="xClose" title="Close dialog" onclick="document.getElementById('editNodesDlg').close()">✖</div>
 				<table>
 					<thead>
 						<tr>
@@ -263,6 +329,7 @@
 						<tr>
 							<th></th>
 							<th>Name</th>
+							<th>Size</th>
 							<th>Colorcode</th>
 							<th>Color</th>
 						</tr>
@@ -270,11 +337,13 @@
 					<tbody id="tblEditNodes">
 					</tbody>
 				</table>
-				<button value="close" title="Close dialog">Close</button>
+				<datalist id='nodelist'>
+				</datalist>
 			</form>
 		</dialog>
 		<dialog id="editLinksDlg" class="edit">
 			<form method="dialog">
+				<div class="xClose" title="Close dialog" onclick="document.getElementById('editLinksDlg').close()">✖</div>
 				<table>
 					<thead>
 						<tr>
@@ -284,6 +353,7 @@
 							<th></th>
 							<th>Source node</th>
 							<th>Target node</th>
+							<th>Width</th>
 							<th>Colorcode</th>
 							<th>Color</th>
 						</tr>
@@ -292,22 +362,19 @@
 					</tbody>
 				</table>
 				<datalist id='sourcelist'>
-					<option>A<option>
-					<option>B<option>
 				</datalist>
 				<datalist id='targetlist'>
-					<option>A<option>
-					<option>B<option>
 				</datalist>
-				<button value="close" title="Close dialog">Close</button>
 			</form>
 		</dialog>
 		<svg height="100%" width="100%" xmlns="http://www.w3.org/2000/svg" id="d3">
 			<!-- This SVG Image was generated using https://github.com/AndreasHeese/1fD3forceGraphNetwork -->
+			<style id="textsize">
+			text { font-size: 100%; }
+			</style>
 			<style>
 			text {
 				font-family: sans-serif;
-				font-size: 100%;
 				pointer-events: none;
 				-webkit-user-select: none;
 				-moz-user-select: none;
@@ -339,6 +406,12 @@
 			} else if (dlgEvt.value === 'editLinks') {
 				editLinks();
 				document.getElementById('editLinksDlg').show();
+			} else if (dlgEvt.value === 'settings') {
+				document.getElementById('bend').value = bv;
+				document.getElementById('showBend').innerHTML = bv;
+				document.getElementById('fontSize').value = document.styleSheets[3].cssRules[0].style.fontSize.replace('%','');
+				document.getElementById('showFontSize').innerHTML = document.styleSheets[3].cssRules[0].style.fontSize;
+				document.getElementById('settings').show();
 			} else if (dlgEvt.value === 'saveStaticSVG') {
 				downloadSVG();
 			} else if (dlgEvt.value === 'saveDynamicHTML') {
@@ -346,9 +419,9 @@
 			} else if (dlgEvt.value === 'saveWholeHTML') {
 				downloadHTML(false);
 			} else if (dlgEvt.value === 'help') {
-				textDlg('View image<br/>The nodes (circles) can be dragged to get a different view of the network connections.<br/>If the shift key is pressed while releasing the mouse button the position of the node will be fixed at the drop position.<br/>Another click on the node without shift key pressed releases the fixation.<br/>Reloading the page releases all fixations, but will also discard all changes.<br/><br/>Change image<br/>Nodes and links can be added, deleted and their color can be adjusted. Node names can be edited.<br/>Editing is accessible via the menu ☰ at the top left corner of the window.<br/>For some node changes a context menu is available on right clicking the node.<br/><br/>Save image<br/>The main menu ☰ offers three different save options:<br/>• Save as static SVG (image to use in documents, only option that keeps fixed nodes)<br/>• Save as dynamic HTML (page to deploy dynamic image without editing use)<br/>• Save editable HTML (same whole page but with current data)<br/>Your browser will write the resulting file into your download folder.');
+				textDlg('View image<br/>The nodes (circles) can be dragged to get a different view of the network connections.<br/>If the shift key is pressed while releasing the mouse button the position of the node will be fixed at the drop position.<br/>Another click on the node without shift key pressed releases the fixation.<br/>Reloading the page releases all fixations, but will also discard all changes.<br/><br/>Change image<br/>Nodes and links can be added, deleted and their color can be adjusted. Node names can be edited.<br/>For color editing hex, rgb, rgba, hsl and hsla codes as well as CSS3 color names are useable.<br/>Color names are not supported by color input dialog, but correctly displayed.<br/>Editing is accessible via the menu ☰ at the top left corner of the window.<br/>For some node changes a context menu is available on right clicking the node.<br/><br/>Save image<br/>The main menu ☰ offers three different save options:<br/>• Save as static SVG (image to use in documents, only option that keeps fixed nodes)<br/>• Save as dynamic HTML (page to deploy dynamic image without editing use)<br/>• Save editable HTML (same whole page but with current data)<br/>Your browser will write the resulting file into your download folder.');
 			} else if (dlgEvt.value === 'info') {
-				textDlg('1fD3forceGraphNetwork displays relationships graphically<br/><br/>This is a locally executable one-file (1f) solution,<br/>the data is embedded as well as the only used library (D3).<br/><br/>Copyright (C) 2024, 2025 Andreas Heese, License GPLv3<br/>This copyright does not extend to the embedded data except that data it was published with.<br/>Version 2.0 published on <a href="https://github.com/AndreasHeese/1fD3forceGraphNetwork">https://github.com/AndreasHeese/1fD3forceGraphNetwork</a><br/>This program is free software under the terms of the GNU General Public License<br/>It is distributed in the hope that it will be useful, but without any warranty.<br/>Find the GNU General Public License at <a href="https://www.gnu.org/licenses">https://www.gnu.org/licenses</a>');
+				textDlg('1fD3forceGraphNetwork displays relationships graphically<br/><br/>This is a locally executable one-file (1f) solution,<br/>the data is embedded as well as the only used library (<a href="https://github.com/d3/d3">D3</a>).<br/><br/>Copyright (C) 2024, 2025 Andreas Heese, License GPLv3<br/>This copyright does not extend to the embedded data except that data it was published with.<br/>Version 2.1 published on <a href="https://github.com/AndreasHeese/1fD3forceGraphNetwork">https://github.com/AndreasHeese/1fD3forceGraphNetwork</a><br/>This program is free software under the terms of the GNU General Public License<br/>It is distributed in the hope that it will be useful, but without any warranty.<br/>Find the GNU General Public License at <a href="https://www.gnu.org/licenses">https://www.gnu.org/licenses</a>');
 			}
 		}
 
@@ -363,54 +436,51 @@
 				renDlg.style.left = graph.nodes[nodeIndex].x + 'px';
 				renDlg.show();
 			} else if (dlgEvt.value === 'addNode') {
-				addNode(this.contextMenuNodeId.value);
+				addNode(this.contextMenuNodeId.value, '', event);
 			} else if (dlgEvt.value === 'deleteNode') {
 				deleteNode(this.contextMenuNodeId.value);
 			}
 		}
 
-		function addNodePrepare(e) {
+		function addNode(nodeId, newName, e) {
 			e.preventDefault();
-			var tblselectlist = document.getElementById("selectlist");
-			tblselectlist.innerHTML = "";
-			for (var node in graph.nodes) {
-				tblselectlist.innerHTML += "<option>" + graph.nodes[node].id + "</option>";
-			};
-			document.getElementById('selectNode').value = '';
-			document.getElementById('selectNodeDlg').showModal(); // will call addNode
-		}
-		
-		function addNode(nId) {
-			if (nameIsDuplicate(nId)) { // nId to add to exists
-				// find unique name for new node
-				var i = 1;
-				do {
-					if (nameIsDuplicate('new node ' + i.toString())) {
-						i = i + 1;
-					} else {
-						break;
-					}
-				} while (nameIsDuplicate('new node ' + i.toString()));
-				var newName = 'new node ' + i.toString();
-				// add new node and new link to nId
-				graph.nodes.push({ id: newName, color: defaultcolor });
-				graph.links.push({ source: nId, target: newName, color: defaultcolor});
+			if (nameIsDuplicate(nodeId)) { // nodeId to add to exists (and has to)
+				if ((newName === '') || (newName === 'undefined')) {
+					newName = 'new node';
+				}
+				if ((nameIsDuplicate(newName)) || (newName === 'new node')) { // newName was blank or already exists (and shouldn't)
+					// find unique name for new node
+					var i = 1;
+					do {
+						if (nameIsDuplicate(newName + ' ' + i.toString())) {
+							i = i + 1;
+						} else {
+							break;
+						}
+					} while (nameIsDuplicate(newName + ' ' + i.toString()));
+					newName = newName + ' ' + i.toString();
+				}
+				// add new node and new link to nodeId
+				graph.nodes.push({ id: newName, color: defaults.nodeColor, size: defaults.nodeSize });
+				graph.links.push({ source: nodeId, target: newName, color: defaults.nodeColor, width: defaults.linkWidth});
 				restart();
 				if (editNodesDlg.open) {
 					editNodes();
 				};
+			} else if (nodeId == '') {
+				textDlg('Node to add to must be selected');
 			} else {
-				textDlg('Node "' + nId + '" to add to does not exist');
+				textDlg('Node "' + nodeId + '" to add to does not exist');
 			};
 		}
 
-		function deleteNode(nId, e) {
+		function deleteNode(nodeId, e) {
 			var id = "";
-			if (editNodesDlg.open) {
+			if ((editNodesDlg.open) && (e != undefined)) { // if editNodesDlg.open and delete didn't come from contextMenu
 				e.preventDefault();
-				id = nId;
+				id = nodeId;
 			} else {
-				id = nId;
+				id = nodeId;
 			}
 			var temp = graph;
 			for(var i = 0; i < temp.links.length; i++) {
@@ -444,7 +514,7 @@
 			} else if ((source === '') || (target === '')) {
 				textDlg('Select source and target nodes first');
 			} else {
-				graph.links.push({ source: source, target: target, color: defaultcolor});
+				graph.links.push({ source: source, target: target, color: defaults.nodeColor, width: defaults.linkWidth});
 				restart();
 				editLinks();
 			}
@@ -467,17 +537,21 @@
 			restart();
 		}
 
-		function renameNode(changedNodeIndex, oldName, newName) {
+		function renameNode(changedNodeIndex, oldName, newName, e) {
 			newName = newName.replace(/\"/g,'”');
 			newName = newName.replace(/\'/g,'’');
-			if (newName == '') {
-				textDlg("can't rename because the name can't be an empty string");
-			} else if (nameIsDuplicate(newName) && (oldName != newName)) {
-				textDlg("can't rename because the name “" + newName + "” is already in use");
-			} else if (oldName != newName) {
-				graph.nodes[changedNodeIndex].id = newName;
-				svg.selectAll('text').data(graph.nodes, d => d.id).text(function(d) { return d.id; });
-				
+			if (e.value != 'cancel') {
+				if (newName == '') {
+					textDlg("can't rename because the name can't be an empty string");
+				} else if (nameIsDuplicate(newName) && (oldName != newName)) {
+					textDlg("can't rename because the name “" + newName + "” is already in use");
+				} else if (oldName != newName) {
+					graph.nodes[changedNodeIndex].id = newName;
+					svg.selectAll('text').data(graph.nodes, d => d.id).text(function(d) { return d.id; });
+				};
+				if (editNodesDlg.open) {
+					editNodes();
+				};
 			};
 		}
 		
@@ -495,6 +569,7 @@
 				graph.nodes[changedNodeIndex].id = newName;
 				svg.selectAll('text').data(graph.nodes, d => d.id).text(function(d) { return d.id; });
 			};
+			editNodes(); // Update dialog
 		}
 
 		function nameIsDuplicate(name) {
@@ -507,19 +582,32 @@
 			return duplicate;
 		}
 		
+		function changeNodeSize(changedNodeIndex, InputElement) {
+			if (isNaN(InputElement.value)||InputElement.value === '') {
+				InputElement.value = defaults.nodeSize;
+			} else if (InputElement.value < 0) {
+				InputElement.value = 0;
+			};
+			var diff = Number(InputElement.value) - Number(graph.nodes[changedNodeIndex].size);
+			graph.nodes[changedNodeIndex].size = Number(InputElement.value);
+			editNodes();
+			document.getElementById('d3').querySelector('g.nodes').childNodes[changedNodeIndex].setAttribute('r', InputElement.value);
+			var pos = Number(document.getElementById('d3').querySelector('g.text').childNodes[changedNodeIndex].getAttribute('x'));
+			pos = pos + diff;
+			document.getElementById('d3').querySelector('g.text').childNodes[changedNodeIndex].setAttribute('x', pos);
+		}
+
 		function changeNodeColor(changedNodeIndex, InputElement) {
 			graph.nodes[changedNodeIndex].color = InputElement.value;
 			editNodes();
-			var n = node.data(graph.nodes, d => d.id);
-			n.filter(function (d) { return d.index == changedNodeIndex; }).style('fill', InputElement.value);
+			document.getElementById('d3').querySelector('g.nodes').childNodes[changedNodeIndex].setAttribute('fill', InputElement.value);
 		}
 
 		function changeNodeColorCode(changedNodeIndex, InputElement) {
 			if (CSS.supports('color',InputElement.value)) {
 				graph.nodes[changedNodeIndex].color = InputElement.value;
 				editNodes();
-				var n = node.data(graph.nodes, d => d.id);
-				n.filter(function (d) { return d.index == changedNodeIndex; }).style('fill', InputElement.value);
+				document.getElementById('d3').querySelector('g.nodes').childNodes[changedNodeIndex].setAttribute('fill', InputElement.value);
 			} else if (InputElement.value == '') {
 				textDlg('An empty string is not a valid color, the value is reset');
 				InputElement.value = graph.nodes[changedNodeIndex].color;
@@ -545,6 +633,14 @@
 				el.setAttribute('value',graph.nodes[node].id);
 				var td = tr.appendChild(document.createElement('td'));
 				var el = td.appendChild(document.createElement('input'));
+				el.setAttribute('class','size');
+				el.setAttribute('type','number');
+				el.setAttribute('min','0');
+				el.setAttribute('max','30');
+				el.setAttribute('onchange','changeNodeSize(' + JSON.stringify(graph.nodes[node].index) + ', this)');
+				el.setAttribute('value',graph.nodes[node].size);	
+				var td = tr.appendChild(document.createElement('td'));
+				var el = td.appendChild(document.createElement('input'));
 				el.setAttribute('class','ColorCode');
 				el.setAttribute('onchange','changeNodeColorCode(' + JSON.stringify(graph.nodes[node].index) + ', this)');
 				el.setAttribute('value',graph.nodes[node].color);
@@ -567,26 +663,49 @@
 			var td = tr.appendChild(document.createElement('td'));
 			var el = td.appendChild(document.createElement('button'));
 			el.setAttribute('title','Add new Node');
-			el.setAttribute('onclick','addNodePrepare(event)');
+			el.setAttribute('onclick','addNode(document.getElementById("addToNodeInput").value, document.getElementById("newNodeNameInput").value, event)');
 			el.append('+');
 			var td = tr.appendChild(document.createElement('td'));
+			var el = td.appendChild(document.createElement('input'));
+			el.setAttribute('id','newNodeNameInput');
+			el.setAttribute('placeholder','Enter name for new node');
+			el.setAttribute('value','');
+			var td = tr.appendChild(document.createElement('td'));
 			td.setAttribute('colspan','3');
+			var el = td.appendChild(document.createElement('input'));
+			el.setAttribute('id','addToNodeInput');
+			el.setAttribute('list','nodelist');
+			el.setAttribute('placeholder','Select existing node to add to');
+			el.setAttribute('value','');
+			var nodelist = document.getElementById("nodelist");
+			nodelist.innerHTML = "";
+			for (var node in graph.nodes) {
+				nodelist.innerHTML += "<option>" + graph.nodes[node].id + "</option>";
+			};
+		}
+		
+		function changeLinkWidth(changedLinkIndex, InputElement) {
+			if (isNaN(InputElement.value)||InputElement.value === '') {
+				InputElement.value = defaults.linkWidth;
+			} else if (InputElement.value < 0) {
+				InputElement.value = 0;
+			};
+			graph.links[changedLinkIndex].width = Number(InputElement.value);
+			editLinks();
+			document.getElementById('d3').querySelector('g.links').childNodes[changedLinkIndex].setAttribute('stroke-width', InputElement.value);
 		}
 
 		function changeLinkColor(changedLinkIndex, InputElement) {
 			graph.links[changedLinkIndex].color = InputElement.value;
 			editLinks();
-			var n = link.data(graph.links, d => d.index);
-			n.filter(function (d) { return d.index == changedLinkIndex; }).style('stroke', InputElement.value);
+			document.getElementById('d3').querySelector('g.links').childNodes[changedLinkIndex].setAttribute('stroke', InputElement.value);
 		}
 
 		function changeLinkColorCode(changedLinkIndex, InputElement) {
 			if (CSS.supports('color',InputElement.value)) {
 				graph.links[changedLinkIndex].color = InputElement.value;
-				editNodes();
-				var n = link.data(graph.links, d => d.index);
-				n.filter(function (d) { return d.index == changedLinkIndex; }).style('stroke', InputElement.value);
 				editLinks();
+				document.getElementById('d3').querySelector('g.links').childNodes[changedLinkIndex].setAttribute('stroke', InputElement.value);
 			} else if (InputElement.value == '') {
 				textDlg('An empty string is not a valid color, the value is reset');
 				InputElement.value = graph.links[changedLinkIndex].color;
@@ -614,6 +733,15 @@
 				var el = td.appendChild(document.createElement('input'));
 				el.setAttribute('value',graph.links[link].target.id);
 				el.setAttribute('readonly','');
+				var td = tr.appendChild(document.createElement('td'));
+				var el = td.appendChild(document.createElement('input'));
+				el.setAttribute('class','size');
+				el.setAttribute('type','number');
+				el.setAttribute('min','0');
+				el.setAttribute('max','10');
+				el.setAttribute('step','.5');
+				el.setAttribute('onchange','changeLinkWidth(' + JSON.stringify(graph.links[link].index) + ', this)');
+				el.setAttribute('value',graph.links[link].width);		
 				var td = tr.appendChild(document.createElement('td'));
 				var el = td.appendChild(document.createElement('input'));
 				el.setAttribute('class','ColorCode');
@@ -645,14 +773,14 @@
 			el.setAttribute('id','newLinkSourceId');
 			el.setAttribute('onchange','updatetargetlist(this)');
 			el.setAttribute('list','sourcelist');
-			el.setAttribute('placeholder','Select node');
+			el.setAttribute('placeholder','Select source node for new link');
 			el.setAttribute('value','');
 			var td = tr.appendChild(document.createElement('td'));
 			var el = td.appendChild(document.createElement('input'));
 			el.setAttribute('id','newLinkTargetId');
 			el.setAttribute('onchange','updatesourcelist(this)');
 			el.setAttribute('list','targetlist');
-			el.setAttribute('placeholder','Select node');
+			el.setAttribute('placeholder','Select target node for new link');
 			el.setAttribute('value','');
 			var td = tr.appendChild(document.createElement('td'));
 			td.setAttribute('colspan','2');
@@ -743,8 +871,8 @@
 			for(i in graph.nodes) {
 				if (i == graph.nodes.length - 1) {
 					comma = '';
-				}				
-				newScriptContent = newScriptContent + '{ id: "' + graph.nodes[i].id + '", color: "' + graph.nodes[i].color + '"}' + comma + '\n';
+				}
+				newScriptContent = newScriptContent + '{ id: "' + graph.nodes[i].id + '", color: "' + graph.nodes[i].color + '", size: ' + graph.nodes[i].size + '}' + comma + '\n';
 			}
 			newScriptContent = newScriptContent + '], \n"links": [ \n';
 			comma = ',';
@@ -752,11 +880,13 @@
 				if (j == graph.links.length - 1) {
 					comma = '';
 				}
-				newScriptContent = newScriptContent + '{ source: "' + graph.links[j].source.id + '", target: "' + graph.links[j].target.id + '", color: "' + graph.links[j].color + '"}' + comma + '\n';
+				newScriptContent = newScriptContent + '{ source: "' + graph.links[j].source.id + '", target: "' + graph.links[j].target.id + '", color: "' + graph.links[j].color + '", width: "' + graph.links[j].width + '"}' + comma + '\n';
 			}
 			newScriptContent = newScriptContent + ']}; \n';
 			
 			h.querySelector("script#graph").innerHTML = newScriptContent;
+			h.querySelector("script#bendvalue").innerHTML = "var bv = " + bv + ";";
+			h.querySelector("style#textsize").innerHTML = "text { font-size: " + document.getElementById('showFontSize').innerHTML + "; }";
 			
 			let b = new Blob(['<!DOCTYPE html>\n' + h.outerHTML], { type: 'text/plain' });
 			let e = window.document.createElement('a');
@@ -767,6 +897,9 @@
 			e.click();
 			document.body.removeChild(e);
 		}
+		</script>
+		<script id="bendvalue">
+		var bv = 20;
 		</script>
 		<script>
 		var svg = d3.select("svg"),
@@ -831,8 +964,7 @@
 				.enter()
 				.append("path")
 					.attr("stroke", (function(d) { return d.color; }))
-					.attr("stroke-width", 1.5)
-					.attr("opacity", 0.8);
+					.attr("stroke-width", (function(d) { return d.width; }));
 
 			// initialize node circles
 			node = svg.append("g")
@@ -842,7 +974,7 @@
 				.data(graph.nodes)
 				.enter()
 				.append("circle")
-					.attr("r", 8)
+					.attr("r", (function(d) { return d.size; }))
 					.attr("stroke", "none")
 					.attr("fill", (function(d) { return d.color; }))
 					.on("contextmenu", function (event, i) { // right click on node shows modal context menue
@@ -869,7 +1001,7 @@
 			node.exit().remove();
 			node = node.enter()
 				.append("circle")
-				.attr("r", 8)
+				.attr("r", (function(d) { return d.size; }))
 				.attr("stroke", "none")
 				.attr("fill", (function(d) { return d.color; }))
 				.on("contextmenu", function (event, i) { // right click on node shows modal context menue
@@ -886,8 +1018,7 @@
 			link.exit().remove();
 			link = link.enter().append("path")
 				.attr("stroke", (function(d) { return d.color; }))
-				.attr("stroke-width", 1.5)
-				.attr("opacity", 0.8)
+				.attr("stroke-width", (function(d) { return d.width; }))
 				.merge(link);
 
 			text = text.data(graph.nodes, d => d.id);
@@ -905,16 +1036,17 @@
 
 		function ticked() {
 			link
-				.attr("d", function(d) { return "M " + d.source.x + " " + d.source.y + " Q " + ((d.source.x + d.target.x) / 2 - (d.source.x + d.target.x) / 100) + " " + ((d.source.y + d.target.y) / 2 - (d.source.y + d.target.y) / 100) + "," + d.target.x + " " + d.target.y; });
-				// value 100 for curvature ist hard coded because this function ist called frequently
+				.attr("d", function(d) { return "M " + d.source.x + " " + d.source.y + " Q " + (((d.source.x + d.target.x) / 2) + (bv * Math.cos(90))) + " " + (((d.source.y + d.target.y) / 2) - (bv * Math.sin(90))) + "," + d.target.x + " " + d.target.y; });
 
 			node
+				.attr("r", function(d) { return d.size; })
 				.attr("cx", function(d) { return d.x; })
 				.attr("cy", function(d) { return d.y; });
 				
 			text
-				.attr("x", function(d) { return d.x + 10; })
+				.attr("x", function(d) { return Number(d.x + 5 + d.size); })
 				.attr("y", function(d) { return d.y; });
+
 		}
 
 		function dragstarted(event) {
