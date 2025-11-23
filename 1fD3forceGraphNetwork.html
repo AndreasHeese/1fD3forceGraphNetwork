@@ -15,7 +15,7 @@
 
 	Copyright (C) 2024, 2025 Andreas Heese, License GPLv3
 	This copyright does not extend to the embedded data except that data it was published with.
-	v2.1 published on https://github.com/AndreasHeese/1fD3forceGraphNetwork
+	v2.2 published on https://github.com/AndreasHeese/1fD3forceGraphNetwork
 
 	This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version
 	This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details
@@ -293,7 +293,7 @@
 							<label for="bend">Link bending</label>
 						</td>
 						<td>
-							<input type="range" name="bend" id="bend" min="0" max="100" step="1" oninput="bv = this.value; document.getElementById('showBend').innerHTML = this.value; restart();"></input>
+							<input type="range" name="bend" id="bend" min="0" max="1.6" step="0.1" oninput="bv = this.value; document.getElementById('showBend').innerHTML = this.value; restart();"></input>
 						</td>
 						<td id="showBend" style="width: 3em">
 						</td>
@@ -899,7 +899,7 @@
 		}
 		</script>
 		<script id="bendvalue">
-		var bv = 20;
+		var bv = 0.8;
 		</script>
 		<script>
 		var svg = d3.select("svg"),
@@ -1036,7 +1036,7 @@
 
 		function ticked() {
 			link
-				.attr("d", function(d) { return "M " + d.source.x + " " + d.source.y + " Q " + (((d.source.x + d.target.x) / 2) + (bv * Math.cos(90))) + " " + (((d.source.y + d.target.y) / 2) - (bv * Math.sin(90))) + "," + d.target.x + " " + d.target.y; });
+				.attr("d", function(d) { return "M " + d.source.x + " " + d.source.y + " Q " + (((d.source.x + d.target.x) / 2) + ((d.source.y - ((d.source.y + d.target.y) / 2)) * - bv)) + " " + (((d.source.y + d.target.y) / 2) + (d.source.x - ((d.source.x + d.target.x) / 2)) * bv) + "," + d.target.x + " " + d.target.y });
 
 			node
 				.attr("r", function(d) { return d.size; })
