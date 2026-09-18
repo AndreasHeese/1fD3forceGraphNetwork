@@ -13,9 +13,9 @@
 	The nodes (circles) can be dragged to get a different view of the network connections.
 	Any relationships can be represented by editing the nodes and links data.
 
-	Copyright (C) 2024, 2025 Andreas Heese, License GPLv3
+	Copyright (C) 2024-2026 Andreas Heese, License GPLv3
 	This copyright does not extend to the embedded data except that data it was published with.
-	v2.2 published on https://github.com/AndreasHeese/1fD3forceGraphNetwork
+	v2.3 published on https://github.com/AndreasHeese/1fD3forceGraphNetwork
 
 	This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version
 	This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details
@@ -496,6 +496,9 @@
 			}
 			graph = temp;
 			restart();
+			if (editNodesDlg.open) {
+				editNodes();
+			};
 		}
 
 		function addLink(e) {
