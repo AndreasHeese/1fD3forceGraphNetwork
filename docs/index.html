@@ -13,9 +13,9 @@
 	The nodes (circles) can be dragged to get a different view of the network connections.
 	Any relationships can be represented by editing the nodes and links data.
 
-	Copyright (C) 2024, 2025 Andreas Heese, License GPLv3
+	Copyright (C) 2024-2026 Andreas Heese, License GPLv3
 	This copyright does not extend to the embedded data except that data it was published with.
-	v2.2 published on https://github.com/AndreasHeese/1fD3forceGraphNetwork
+	v2.3 published on https://github.com/AndreasHeese/1fD3forceGraphNetwork
 
 	This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version
 	This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details
@@ -421,7 +421,7 @@
 			} else if (dlgEvt.value === 'help') {
 				textDlg('View image<br/>The nodes (circles) can be dragged to get a different view of the network connections.<br/>If the shift key is pressed while releasing the mouse button the position of the node will be fixed at the drop position.<br/>Another click on the node without shift key pressed releases the fixation.<br/>Reloading the page releases all fixations, but will also discard all changes.<br/><br/>Change image<br/>Nodes and links can be added, deleted and their color can be adjusted. Node names can be edited.<br/>For color editing hex, rgb, rgba, hsl and hsla codes as well as CSS3 color names are useable.<br/>Color names are not supported by color input dialog, but correctly displayed.<br/>Editing is accessible via the menu ☰ at the top left corner of the window.<br/>For some node changes a context menu is available on right clicking the node.<br/><br/>Save image<br/>The main menu ☰ offers three different save options:<br/>• Save as static SVG (image to use in documents, only option that keeps fixed nodes)<br/>• Save as dynamic HTML (page to deploy dynamic image without editing use)<br/>• Save editable HTML (same whole page but with current data)<br/>Your browser will write the resulting file into your download folder.');
 			} else if (dlgEvt.value === 'info') {
-				textDlg('1fD3forceGraphNetwork displays relationships graphically<br/><br/>This is a locally executable one-file (1f) solution,<br/>the data is embedded as well as the only used library (<a href="https://github.com/d3/d3">D3</a>).<br/><br/>Copyright (C) 2024, 2025 Andreas Heese, License GPLv3<br/>This copyright does not extend to the embedded data except that data it was published with.<br/>Version 2.1 published on <a href="https://github.com/AndreasHeese/1fD3forceGraphNetwork">https://github.com/AndreasHeese/1fD3forceGraphNetwork</a><br/>This program is free software under the terms of the GNU General Public License<br/>It is distributed in the hope that it will be useful, but without any warranty.<br/>Find the GNU General Public License at <a href="https://www.gnu.org/licenses">https://www.gnu.org/licenses</a>');
+				textDlg('1fD3forceGraphNetwork displays relationships graphically<br/><br/>This is a locally executable one-file (1f) solution,<br/>the data is embedded as well as the only used library (<a href="https://github.com/d3/d3">D3</a>).<br/><br/>Copyright (C) 2024-2026 Andreas Heese, License GPLv3<br/>This copyright does not extend to the embedded data except that data it was published with.<br/>Version 2.3 published on <a href="https://github.com/AndreasHeese/1fD3forceGraphNetwork">https://github.com/AndreasHeese/1fD3forceGraphNetwork</a><br/>This program is free software under the terms of the GNU General Public License<br/>It is distributed in the hope that it will be useful, but without any warranty.<br/>Find the GNU General Public License at <a href="https://www.gnu.org/licenses">https://www.gnu.org/licenses</a>');
 			}
 		}
 
@@ -496,6 +496,9 @@
 			}
 			graph = temp;
 			restart();
+			if (editNodesDlg.open) {
+				editNodes();
+			};
 		}
 
 		function addLink(e) {
